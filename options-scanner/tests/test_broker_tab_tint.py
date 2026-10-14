@@ -18,8 +18,8 @@ import pytest
 
 from options_scanner import ui_theme
 
-TAB_NAMES = ["Single Ticker", "Watchlist", "Positions", "Trades",
-             "Portfolio", "GEX", "Spreads", "Directional", "Neutral",
+TAB_NAMES = ["Single Ticker", "Watchlist", "Crash Candidates", "Positions",
+             "Trades", "Portfolio", "GEX", "Spreads", "Directional", "Neutral",
              "Live Charts"]
 BROKER_TABS = {"Trades", "Positions"}
 

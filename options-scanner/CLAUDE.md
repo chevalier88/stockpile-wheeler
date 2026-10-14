@@ -53,6 +53,66 @@ preset names differ from the UI labels). The
 `percentile` score persists scans to a gitignored SQLite store
 (`options-scanner/cache/`) and is blank until history accumulates.
 
+## Crash Candidates tab — stock screening, not order automation
+
+`options_scanner/screener/` + `tabs/screener.py`. Screens the S&P 500 +
+S&P 400 (~900 tickers) for the manually-run wheel strategy (sell CSPs,
+take assignment, sell CCs, repeat — this tab finds candidates for that;
+it places no orders of its own beyond the existing Sell Put hand-off).
+
+Two **independently scored**, never-combined axes, because the safest
+stocks and the best-paying options pull in opposite directions:
+
+- **Resilience** (`screener/resilience.py`) — pure price-history math,
+  no fundamentals. Downside beta (beta computed only on the
+  benchmark's down days — the relevant "how bad is my bad" measure)
+  against **SMH** (a single liquid semiconductor ETF standing in for
+  "AI narrative," chosen over a hand-weighted custom basket of AI
+  names) and against **SPY** (broad market), plus excess return on two
+  named past stress days — `DEEPSEEK_DAY` (2025-01-27, AI-specific) and
+  `TARIFF_SHOCK_DAYS` (2025-04-03/04, broad market) — plus max drawdown/
+  recovery and realized vol. Deliberately does NOT trust GICS sector
+  labels: "Utilities" now includes AI-datacenter power names (VST, CEG,
+  NRG) that behave like semis, which is exactly the case this
+  empirical measure is built to catch instead of a sector filter.
+- **Wheelability** (`screener/wheelability.py`) — reuses
+  `chain.fetch_chain` + `iv_surface.compute_iv_excess` (the same
+  pipeline every other tab uses) to find each candidate's ~0.30-delta
+  put in the 30-45 DTE window and scores it on annualized yield, open
+  interest, and bid-ask spread. A high-IV name with no real open
+  interest (one contract, a huge quoted yield nobody could actually
+  collect) scores low here even though resilience.py never sees IV at
+  all — the two modules don't share inputs on purpose.
+
+**Two-stage pipeline** (`screener/pipeline.py`): batched price history
+(`screener/prices.py`, one `yfinance.download()` call per ~150-ticker
+chunk) scores resilience for the *whole* universe cheaply, then only
+the top-K (default 150) by resilience score go through the expensive
+per-ticker option-chain fetch for wheelability. Running wheelability
+against all ~900 tickers would be ~900 individual chain fetches and
+get rate-limited; this reuses the cheap stage as a filter in front of
+the expensive one.
+
+Results cache to `options-scanner/cache/screener.db` (sqlite, same
+connect/create-table/upsert shape as `iv_history.py`) so the tab reads
+instantly after the first build. The universe ticker list itself caches
+separately to `options-scanner/cache/universe.json` (30-day staleness
+window) — `screener/universe.py` fetches it from Wikipedia's S&P 500 /
+S&P 400 constituent tables via `requests` + `pandas.read_html`,
+**with a browser User-Agent header** — Wikipedia 403s the bare
+urllib/pandas default.
+
+Selling a candidate's put does NOT reuse the cached strike/price —
+`tabs/screener.py::_open_sell_dialog` re-fetches a live chain first,
+since the cache can be hours old and an order must price against the
+market as it is now. Same reasoning as `leg_iv_pp` needing a live
+chain fetch elsewhere in this file.
+
+This screens *measured exposure*, not crash immunity — correlations
+move toward 1 in a real broad-enough crash regardless of what the
+score says. The tab says so in its own caption, same as the GEX tab's
+"assumed, not measured" caveat.
+
 ## Running the tool
 
 Always run from the **repo root** using `uv run`:

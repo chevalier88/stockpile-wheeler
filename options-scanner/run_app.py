@@ -30,6 +30,7 @@ from options_scanner.tabs.gex import tab_gex
 from options_scanner.tabs.live_charts import tab_live_charts
 from options_scanner.tabs.portfolio import tab_portfolio, tab_watchlist
 from options_scanner.tabs.rolls import tab_positions
+from options_scanner.tabs.screener import tab_screener
 from options_scanner.tabs.single import tab_single
 from options_scanner.tabs.spreads import tab_directional, tab_neutral, tab_spreads
 from options_scanner.tabs.trades import tab_trades
@@ -527,11 +528,12 @@ if _pending_toast:
 # regardless of how many exist, and each tab's live data loads when you arrive.
 # Switching tabs is a rerun (native st.tabs switched purely client-side); that
 # rerun is the cost of laziness, and the center spinner covers it.
-TAB_NAMES = ["Single Ticker", "Watchlist", "Positions", "Trades",
-             "Portfolio", "GEX", "Spreads", "Directional", "Neutral",
+TAB_NAMES = ["Single Ticker", "Watchlist", "Crash Candidates", "Positions",
+             "Trades", "Portfolio", "GEX", "Spreads", "Directional", "Neutral",
              "Live Charts"]
 TAB_FUNCS = {
     "Single Ticker": tab_single, "Watchlist": tab_watchlist,
+    "Crash Candidates": tab_screener,
     "Positions": tab_positions, "Trades": tab_trades,
     "Portfolio": tab_portfolio, "GEX": tab_gex, "Spreads": tab_spreads,
     "Directional": tab_directional, "Neutral": tab_neutral,

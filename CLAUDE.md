@@ -94,8 +94,11 @@ uv run streamlit run options-scanner/run_app.py
 ```
 
 Opens at `http://localhost:8501` with tabs for Single Ticker, Watchlist,
-**Positions**, Trades, Portfolio, GEX, Spreads/Directional/Neutral, and
-**Live Charts** (the trading dashboard, embedded). The **Trades** tab lists
+**Crash Candidates** (screens the S&P 500 + S&P 400 for AI-crash /
+black-swan resilience vs. wheel-strategy option liquidity — see
+`options-scanner/CLAUDE.md`), **Positions**, Trades, Portfolio, GEX,
+Spreads/Directional/Neutral, and **Live Charts** (the trading
+dashboard, embedded). The **Trades** tab lists
 trades placed from the scanner, each row colored by what's behind it: a
 row with no position (the opening order expired unfilled at the close,
 was rejected, or its contract has since expired) goes gray and is
